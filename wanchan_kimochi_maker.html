@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>わんちゃんの気持ちメーカー</title>
+  <style>
+    :root{
+      --ink:#141414;
+      --card: rgba(255,255,255,.9);
+      --shadow: 0 20px 45px rgba(0,0,0,.25);
+      --radius: 18px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", Arial, sans-serif;
+      color:var(--ink);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+
+      /* 🌱 草原背景（画像なし） */
+      background:
+        radial-gradient(circle at 20% 80%, rgba(255,255,255,.35), transparent 40%),
+        radial-gradient(circle at 80% 75%, rgba(255,255,255,.25), transparent 45%),
+        linear-gradient(
+          to top,
+          #4caf50 0%,
+          #66bb6a 35%,
+          #81c784 55%,
+          #aed581 70%,
+          #c5e1a5 82%,
+          #dcedc8 92%,
+          #e8f5e9 100%
+        );
+    }
+
+    /* 🌞 光のゆらぎ */
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      background:
+        radial-gradient(circle at 30% 20%, rgba(255,255,255,.45), transparent 35%),
+        radial-gradient(circle at 70% 25%, rgba(255,255,255,.35), transparent 40%);
+      animation: meadowLight 10s ease-in-out infinite;
+      pointer-events:none;
+      z-index:-1;
+      opacity:.9;
+    }
+    @keyframes meadowLight{
+      0%{ opacity:.6; }
+      50%{ opacity:1; }
+      100%{ opacity:.6; }
+    }
+
+    .wrap{ width:min(820px, 100%); }
+    .title{
+      text-align:center;
+      font-weight:900;
+      letter-spacing:.06em;
+      font-size: clamp(28px, 4.5vw, 44px);
+      margin:0 0 10px;
+      color:#0b2b12;
+      text-shadow: 0 10px 25px rgba(255,255,255,.35);
+    }
+    .sub{
+      text-align:center;
+      margin:0 0 18px;
+      color: rgba(0,0,0,.75);
+      font-weight:800;
+      font-size: clamp(16px, 2.4vw, 20px);
+    }
+
+    .card{
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.55);
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:center;
+      margin-bottom: 10px;
+    }
+
+    input[type="text"]{
+      padding:14px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,.12);
+      outline:none;
+      font-size: 18px;
+      min-width: 240px;
+      background: rgba(255,255,255,.95);
+    }
+
+    .btn{
+      padding:14px 22px;
+      border-radius: 999px;
+      border: none;
+      cursor:pointer;
+      font-weight: 900;
+      font-size: 18px;
+      color: #fff;
+      background: linear-gradient(135deg, #111, #444);
+      box-shadow: 0 10px 20px rgba(0,0,0,.2);
+      transition: transform .08s ease, filter .08s ease;
+      user-select:none;
+    }
+    .btn:active{ transform: translateY(1px) scale(.99); filter: brightness(.95); }
+
+    .hint{
+      text-align:center;
+      margin: 8px 0 0;
+      font-size: 14px;
+      opacity:.8;
+      font-weight:700;
+    }
+
+    .result{
+      margin-top: 14px;
+      display:none;
+      gap:12px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+    }
+    @media (min-width: 720px){
+      .grid{ grid-template-columns: 1fr 1fr; }
+      .span2{ grid-column: 1 / -1; }
+    }
+
+    .pill{
+      border-radius: 16px;
+      padding: 14px 14px;
+      background: rgba(255,255,255,.92);
+      border: 1px solid rgba(0,0,0,.07);
+    }
+    .pill h3{
+      margin:0 0 6px;
+      font-size: 16px;
+      opacity:.82;
+      letter-spacing:.04em;
+    }
+    .big{
+      font-size: clamp(22px, 3.2vw, 28px);
+      font-weight: 900;
+      line-height: 1.5;
+      margin:0;
+    }
+    .line{
+      margin-top:8px;
+      font-size: 16px;
+      line-height: 1.8;
+      opacity:.92;
+      font-weight:700;
+    }
+
+    .headerLine{
+      text-align:center;
+      font-weight: 900;
+      font-size: clamp(22px, 3.6vw, 30px);
+      margin: 6px 0 2px;
+    }
+    .meta{
+      text-align:center;
+      margin: 0 0 10px;
+      opacity:.82;
+      font-weight:800;
+      font-size: 15px;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border-radius:999px;
+      padding: 6px 10px;
+      background: rgba(0,0,0,.06);
+      font-weight: 900;
+      font-size: 15px;
+      margin-top: 10px;
+    }
+
+    .fadeIn{
+      animation: pop .35s ease both;
+      transform-origin: 50% 30%;
+    }
+    @keyframes pop{
+      from{ opacity:0; transform: translateY(6px) scale(.98); }
+      to{ opacity:1; transform: translateY(0) scale(1); }
+    }
+
+    .paws{
+      text-align:center;
+      color: rgba(0,0,0,.65);
+      margin-top: 10px;
+      font-weight:900;
+      letter-spacing:.08em;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 class="title">わんちゃんの気持ちメーカー 🐾</h1>
+    <p class="sub">犬種と名前を入れるだけで「欲しいもの・やってほしいこと・これからのお願い」が出ます</p>
+
+    <div class="card">
+      <div class="row">
+        <input id="breed" type="text" placeholder="犬種（例：柴犬 / トイプー）" />
+        <input id="dogname" type="text" placeholder="名前（例：ムギ / ココ）" />
+        <button class="btn" onclick="makeWish()">出してみる</button>
+      </div>
+      <p class="hint">※この内容は“占い風のアイデア”としてお楽しみください（行動・健康の判断は獣医さん等へ）。</p>
+
+      <div id="out" class="result"></div>
+    </div>
+
+    <div class="paws">✦ ✦ ✦ 🐾 ✦ ✦ ✦</div>
+  </div>
+
+  <script>
+    // 文章パーツ（ここを増やすほどバリエーション増えます）
+    const WANTS = [
+      "新しいおもちゃで思いっきり遊びたい！🧸",
+      "香りがするおやつがほしい…（ちょっとだけでいい）🍖",
+      "いつもより長めのなでなでタイムがほしい 🫶",
+      "ふわふわの毛布を“自分専用”にしてほしい 🧺",
+      "窓辺で一緒にのんびりする時間がほしい ☀️",
+      "知育トイ（おやつ探し）をやってみたい！🧠",
+      "写真を撮る時に『かわいい！』って言ってほしい 📸",
+      "たまには“特別席”（ソファの端っこ）をください 🛋️"
+    ];
+
+    const DO_THIS = [
+      "今日の散歩は『寄り道OK』にしてほしい！🚶‍♂️",
+      "おうちで“かくれんぼ”してほしい！🙈",
+      "ゆっくりブラッシングしてほしい（気持ちいいやつ）✨",
+      "短いトレーニングをほめながらやってほしい！🏅",
+      "一緒にゴロンして“同じ目線”でいてほしい 💤",
+      "お気に入りの場所を探検したい（安全第一で）🗺️",
+      "『おかえり』をいつもより大げさに言ってほしい！🎉",
+      "お水を新しくして“うまい水”にしてほしい 💧"
+    ];
+
+    const TOGETHER = [
+      "これからも一緒に暮らしたい。だから、あなたの声を聞かせてね。🐶",
+      "一緒にいればそれで安心。今日もそばにいてほしい。🤍",
+      "忙しい日ほど、5分でいいから目を見てほしい。👀",
+      "あなたが笑うと、わたし（ぼく）も幸せ。ずっとチームだよ。🤝",
+      "約束：どんな日でも帰る場所はここ。だから一緒にゆっくりね。🏠",
+      "たまに不安になるけど、あなたの匂いで落ち着く。ずっと一緒。🫧",
+      "年を重ねても、好きは増える。散歩も昼寝も一緒がいい。🌙",
+      "言葉はいらない。手のぬくもりだけで十分。ずっと一緒に。🫶"
+    ];
+
+    const EXTRA = [
+      "今日の合言葉：『よしよし』を3回 🐾",
+      "ラッキースポット：玄関（お見送り・お出迎えで運気UP）🚪",
+      "ごほうび提案：ゆっくり撫でてから“おやつ1粒” 🎁",
+      "おすすめ：写真を1枚撮ってアルバムに入れてね 📷",
+      "お願い：散歩後に足を拭く時、やさしく声かけしてね 🧼",
+      "気分転換：いつもと違う道を100mだけ歩こう 🛣️"
+    ];
+
+    const MOOD = [
+      { label:"甘えんぼモード", emoji:"🥺" },
+      { label:"冒険モード", emoji:"🧭" },
+      { label:"のんびりモード", emoji:"😌" },
+      { label:"わくわくモード", emoji:"🤩" },
+      { label:"ごほうびモード", emoji:"🍪" },
+      { label:"守りたいモード", emoji:"🛡️" },
+    ];
+
+    function makeWish(){
+      const breed = (document.getElementById("breed").value || "").trim();
+      const name  = (document.getElementById("dogname").value || "").trim();
+
+      if(!breed || !name){
+        alert("犬種と名前を入力してください！");
+        return;
+      }
+
+      const seed = hash(`${breed}::${name}::${todayKey()}`);
+      const want = pickBySeed(WANTS, seed + 7);
+      const doit = pickBySeed(DO_THIS, seed + 19);
+      const tog  = pickBySeed(TOGETHER, seed + 31);
+      const extra= pickBySeed(EXTRA, seed + 53);
+      const mood = pickBySeed(MOOD, seed + 71);
+
+      const out = document.getElementById("out");
+      out.style.display = "grid";
+      out.className = "result fadeIn";
+      out.innerHTML = `
+        <div class="headerLine">🐕 ${escapeHtml(name)}（${escapeHtml(breed)}）の今日の要望</div>
+        <div class="meta">※日替わり（同じ日・同じ入力なら同じ結果）</div>
+
+        <div class="grid">
+          <div class="pill">
+            <h3>いま欲しがっているもの</h3>
+            <p class="big">🎁 ${want}</p>
+            <div class="line">「${escapeHtml(name)}」の“視線”がいつもより強めなら、これかも。</div>
+          </div>
+
+          <div class="pill">
+            <h3>やってほしいこと</h3>
+            <p class="big">🫶 ${doit}</p>
+            <div class="line">できたら“言葉でほめる＋軽くなでる”のセットが最強。</div>
+          </div>
+
+          <div class="pill span2">
+            <h3>これからも一緒に暮らしたい（心の声）</h3>
+            <p class="big">💌 ${tog}</p>
+            <div class="badge">${mood.emoji} 今日の気分：${mood.label}</div>
+          </div>
+
+          <div class="pill span2">
+            <h3>おまけ（今日の小さなお願い）</h3>
+            <p class="big">✨ ${extra}</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function todayKey(){
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth()+1).padStart(2,"0");
+      const d = String(now.getDate()).padStart(2,"0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function pickBySeed(arr, seed){
+      let x = (seed + 0x6D2B79F5) >>> 0;
+      x = Math.imul(x ^ (x >>> 15), 1 | x);
+      x ^= x + Math.imul(x ^ (x >>> 7), 61 | x);
+      x = (x ^ (x >>> 14)) >>> 0;
+      return arr[x % arr.length];
+    }
+
+    function hash(str){
+      // 簡易ハッシュ（安定して同じ入力→同じ結果）
+      let h = 2166136261;
+      for(let i=0;i<str.length;i++){
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return h >>> 0;
+    }
+
+    function escapeHtml(s){
+      return s
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+  </script>
+</body>
+</html>
